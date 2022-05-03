@@ -115,13 +115,13 @@ def simpson_limit(func, epsilon: float, wage_function) -> float:
 
 def main():
     functions = [
+        ("1", Function(lambda x: 1)),
         ("x^2 + 2", Function(lambda x: x ** 2 + 2)),
         ("sin(x)", Function(lambda x: sin(x))),
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
         ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x ** 2)), Function(lambda x: 1)),
-        ("-x / sqrt(1 - x^2)", Function(lambda x: -x / sqrt(1 - x ** 2)), Function(lambda x: -x)),
-        ("|1 / x|", Function(lambda x: abs(1 / x))),
-        ("1", Function(lambda x: 1))
+        ("1 +  1 / 25x^2 / sqrt(1 - x^2)", Function(lambda x: (1 + 1 / 25 * x**2) / sqrt(1 - x**2)), Function(lambda x: 1 + 1 / (25 * x**2))),
+        ("|1 / x|", Function(lambda x: abs(1 / x)))
     ]
 
     function_choice = None
