@@ -35,6 +35,34 @@ def newton_cotes(func, a: float, b: float, epsilon: float) -> float:
     return result
 
 
+# do porównania newtona_cotesa z naszą metodą musimy obliczyc granice
+# nie wiem czy to jest dobrze, ta instrukcja jest zjebana
+# przypomnij zeby pousuwac komentarze przed oddaniem xd
+def newton_cotes_limit(func, epsilon: float) -> float:
+    a = 0
+    b = 0.5
+    result = 0
+    # granica do +1
+    while True:
+        integral = newton_cotes(func, a, b, epsilon)
+        result += integral
+        a = b
+        b = b + (1 - b) / 2
+        if abs(integral) < epsilon:
+            break
+    # granica do -1
+    a = -0.5
+    b = 0
+    while True:
+        integral = newton_cotes(func, a, b, epsilon)
+        result += integral
+        b = a
+        a = a - (1 - abs(a)) / 2
+        if abs(integral) < epsilon:
+            break
+    return result
+
+
 def main():
     functions = [
         ("x^2 + 2", Function(lambda x: x ** 2 + 2)),
@@ -65,6 +93,7 @@ def main():
         precision_choice = input("\t>>>>")
     chosen_function = functions[int(function_choice) - 1][1]
     print(newton_cotes(chosen_function, float(a), float(b), float(precision_choice)))
+    print(newton_cotes_limit(chosen_function, float(precision_choice)))
 
 
 if __name__ == "__main__":
