@@ -4,7 +4,41 @@
 # trzymaj sie instrukcji bo cie Runge zmiecie z planszy
 # uruchomic pare razy, wyniki sie powinny powtarzac
 # TODO zlozona kwadratura newtona-cotesa oparta na trzech wezlach (wzor simpsona), gauss-czebyszew
+
+import math
+import matplotlib.pyplot as pyplot
+import numpy as np
+
 from math import sin, sqrt
+
+
+def draw_function(function, a, b):
+    a = min(math.floor(a), math.ceil(a))
+    b = max(math.floor(b), math.ceil(b))
+    x = np.linspace(a, b, 100)
+
+    figure = pyplot.figure()
+    axis = figure.add_subplot(1, 1, 1)
+    axis.spines['right'].set_color('none')
+    axis.spines['top'].set_color('none')
+    axis.xaxis.set_ticks_position('bottom')
+    axis.spines['bottom'].set_position(('data', 0))
+    axis.yaxis.set_ticks_position('left')
+    axis.spines['left'].set_position(('data', 0))
+
+    axis.plot(1, 0, ls="", marker=">", ms=10, color="k",
+              transform=axis.get_yaxis_transform(), clip_on=False)
+    axis.plot(0, 1, ls="", marker="^", ms=10, color="k",
+              transform=axis.get_xaxis_transform(), clip_on=False)
+
+    y_vals = x.copy()
+    for i in range(len(y_vals)):
+        y_vals[i] = function(x[i])
+    pyplot.plot(x, y_vals, 'r', label="f(x)")
+
+    pyplot.xticks(np.arange(min(x), max(x) + 1, 1.0))
+    pyplot.legend()
+    pyplot.show()
 
 
 class Function:
@@ -15,36 +49,40 @@ class Function:
         return self.__calc(x)
 
 
-def simpson(func, a: float, b: float) -> float:
-    return ((b - a) / 6) * (func(a) + 4 * func((a + b) / 2) + func(b))
+def simpson(f, a, b, e):
+    prev_val = None
+    curr_val = None
+    intervals = 3  # musi być >= 2 i nieparzysta
 
+    while prev_val is None or abs(prev_val - curr_val) >= e:
+        prev_val = curr_val
+        h = (b - a) / intervals
+        sum = f(a) + f(b)
 
-# Dzielimy przedzial na podprzedzialy i dla kazdego liczymy wedlug wzoru Simpsona
-# dopoki wynik nie osiągnie zadanej dokładności
-def newton_cotes(func, a: float, b: float, epsilon: float) -> float:
-    prev_result = 0
-    while True:
-        result = 0
-        n = 1
-        for i in range(n):
-            lenght = (b - a) / n
-            result += simpson(func, a + lenght * i, a + lenght * (i + 1))
-        if result - prev_result < epsilon:
-            break
-        prev_result = result
-    return result
+        for i in range(1, intervals):
+            if i % 2 == 1:
+                sum += 4 * f(a + i * h)
+            else:
+                sum += 2 * f(a + i * h)
+
+        sum *= h
+        sum /= 3
+
+        curr_val = sum
+        intervals *= 2
+    return curr_val
 
 
 # do porównania newtona_cotesa z naszą metodą musimy obliczyc granice
 # nie wiem czy to jest dobrze, ta instrukcja jest zjebana
 # przypomnij zeby pousuwac komentarze przed oddaniem xd
-def newton_cotes_limit(func, epsilon: float) -> float:
+def simpson_limit(func, epsilon: float) -> float:
     a = 0
     b = 0.5
     result = 0
     # granica do +1
     while True:
-        integral = newton_cotes(func, a, b, epsilon)
+        integral = simpson(func, a, b, epsilon)
         result += integral
         a = b
         b = b + (1 - b) / 2
@@ -54,7 +92,7 @@ def newton_cotes_limit(func, epsilon: float) -> float:
     a = -0.5
     b = 0
     while True:
-        integral = newton_cotes(func, a, b, epsilon)
+        integral = simpson(func, a, b, epsilon)
         result += integral
         b = a
         a = a - (1 - abs(a)) / 2
@@ -72,7 +110,7 @@ def main():
     ]
 
     function_choice = None
-    precision_choice = 0
+    e = 0
 
     while function_choice is None:
         print("Wybierz funkcje")
@@ -88,13 +126,13 @@ def main():
     while float(b) <= float(a):
         print("Podaj górny przedział funkcji")
         b = input("\t>>>>")
-    while float(precision_choice) <= 0:
+    while float(e) <= 0:
         print("Podaj dokladnosc")
-        precision_choice = input("\t>>>>")
+        e = input("\t>>>>")
     chosen_function = functions[int(function_choice) - 1][1]
-    print(newton_cotes(chosen_function, float(a), float(b), float(precision_choice)))
-    print(newton_cotes_limit(chosen_function, float(precision_choice)))
+    print(simpson(chosen_function, float(a), float(b), float(e)))
+    #draw_function(chosen_function, float(a), float(b))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
