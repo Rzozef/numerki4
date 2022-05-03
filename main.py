@@ -1,21 +1,25 @@
 # dodac funkcje ktore beda dzialac i dla kontrastu te ktore nie beda (nie mają pochodnej, czy cos)
-# -M <= |f(x)| <= M  ##### jakis wazny warunek
 # funckje wymierne nadają sie do przykladow negatywnych
 # trzymaj sie instrukcji bo cie Runge zmiecie z planszy
 # uruchomic pare razy, wyniki sie powinny powtarzac
-# TODO zlozona kwadratura newtona-cotesa oparta na trzech wezlach (wzor simpsona), gauss-czebyszew
 
 import math
 import matplotlib.pyplot as pyplot
 import numpy as np
 
-from math import sin, sqrt
+from math import cos, pi, sin, sqrt
 
 
-def draw_function(function, a, b):
+def draw_function(function, a, b, draw_borders=True):
+    org_a = a
+    org_b = b
     a = min(math.floor(a), math.ceil(a))
     b = max(math.floor(b), math.ceil(b))
-    x = np.linspace(a, b, 100)
+    x = None
+    if draw_borders == True:
+        x = np.linspace(a, b, 100)
+    else:
+        x = np.linspace(org_a, org_b, 100)
 
     figure = pyplot.figure()
     axis = figure.add_subplot(1, 1, 1)
@@ -36,6 +40,15 @@ def draw_function(function, a, b):
         y_vals[i] = function(x[i])
     pyplot.plot(x, y_vals, 'r', label="f(x)")
 
+    section = np.arange(org_a, org_b, 0.0001)
+    y_vals = section.copy()
+    for i, val in enumerate(y_vals):
+        y_vals[i] = function(val)
+    pyplot.fill_between(section, y_vals, color='b', alpha=.2)
+
+    pyplot.axvline(x=org_a)
+    pyplot.axvline(x=org_b)
+
     pyplot.xticks(np.arange(min(x), max(x) + 1, 1.0))
     pyplot.legend()
     pyplot.show()
@@ -49,7 +62,7 @@ class Function:
         return self.__calc(x)
 
 
-def simpson(f, a, b, e):
+def simpson(f, a, b, e, wage_function):
     prev_val = None
     curr_val = None
     intervals = 3  # musi być >= 2 i nieparzysta
@@ -57,13 +70,14 @@ def simpson(f, a, b, e):
     while prev_val is None or abs(prev_val - curr_val) >= e:
         prev_val = curr_val
         h = (b - a) / intervals
-        sum = f(a) + f(b)
+        sum = f(a) * wage_function(a)
+        sum += f(b) * wage_function(b)
 
         for i in range(1, intervals):
             if i % 2 == 1:
-                sum += 4 * f(a + i * h)
+                sum += 4 * f(a + i * h) * wage_function(a + i * h)
             else:
-                sum += 2 * f(a + i * h)
+                sum += 2 * f(a + i * h) * wage_function(a + i * h)
 
         sum *= h
         sum /= 3
@@ -73,16 +87,22 @@ def simpson(f, a, b, e):
     return curr_val
 
 
-# do porównania newtona_cotesa z naszą metodą musimy obliczyc granice
-# nie wiem czy to jest dobrze, ta instrukcja jest zjebana
-# przypomnij zeby pousuwac komentarze przed oddaniem xd
-def simpson_limit(func, epsilon: float) -> float:
+def gauss_czebyszew(f, n):
+    sum = 0
+    A = pi / (n + 1)
+    for i in range(0, n + 1):
+        x = cos(((2 * i + 1) * pi) / (2 * n + 2))
+        sum += A * f(x)
+    return sum
+
+
+def simpson_limit(func, epsilon: float, wage_function) -> float:
     a = 0
     b = 0.5
     result = 0
     # granica do +1
     while True:
-        integral = simpson(func, a, b, epsilon)
+        integral = simpson(func, a, b, epsilon, wage_function)
         result += integral
         a = b
         b = b + (1 - b) / 2
@@ -92,7 +112,7 @@ def simpson_limit(func, epsilon: float) -> float:
     a = -0.5
     b = 0
     while True:
-        integral = simpson(func, a, b, epsilon)
+        integral = simpson(func, a, b, epsilon, wage_function)
         result += integral
         b = a
         a = a - (1 - abs(a)) / 2
@@ -106,11 +126,16 @@ def main():
         ("x^2 + 2", Function(lambda x: x ** 2 + 2)),
         ("sin(x)", Function(lambda x: sin(x))),
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
-        ("1 / (2 * sqrt(x))", Function(lambda x: 1 / 2 * sqrt(x)))
+        ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x ** 2)), Function(lambda x: 1)),
+        ("-x / sqrt(1 - x^2)", Function(lambda x: -x / sqrt(1 - x ** 2)), Function(lambda x: -x)),
+        ("1", Function(lambda x: 1))
     ]
 
     function_choice = None
+    method_choice = None
     e = 0
+    calc_limit = None
+    draw_borders = True
 
     while function_choice is None:
         print("Wybierz funkcje")
@@ -120,18 +145,55 @@ def main():
         if int(function_choice) not in range(1, len(functions) + 1):
             print("Nie ma takiej opcji w menu")
             function_choice = None
-    print("Podaj dolny przedział funkcji")
-    a = input("\t>>>>")
-    b = a
-    while float(b) <= float(a):
-        print("Podaj górny przedział funkcji")
-        b = input("\t>>>>")
-    while float(e) <= 0:
-        print("Podaj dokladnosc")
-        e = input("\t>>>>")
     chosen_function = functions[int(function_choice) - 1][1]
-    print(simpson(chosen_function, float(a), float(b), float(e)))
-    #draw_function(chosen_function, float(a), float(b))
+    while method_choice is None:
+        print("Wybierz metode")
+        print("\t1. Newton-Cotes")
+        print("\t2. Gauss-Czebyszew")
+        method_choice = input("\t>>>>")
+        if int(method_choice) not in range(1, 3):
+            print("Nie ma takiej opcji w menu")
+            method_choice = None
+    if int(method_choice) == 1:
+        wage_function = None
+        while wage_function is None:
+            print("Wybierz funkcję wagową:")
+            for i in range(len(functions)):
+                print(f"\t{i + 1}. {functions[i][0]}")
+            wage_function = input("\t>>>>")
+            if int(function_choice) not in range(1, len(functions) + 1):
+                print("Nie ma takiej opcji w menu")
+                wage_function = None
+        wage_function = functions[int(wage_function) - 1][1]
+        print("Podaj dolny przedział funkcji")
+        a = input("\t>>>>")
+        b = a
+        while float(b) <= float(a):
+            print("Podaj górny przedział funkcji")
+            b = input("\t>>>>")
+        while float(e) <= 0:
+            print("Podaj dokladnosc")
+            e = input("\t>>>>")
+        while calc_limit is None:
+            print("Liczyc granice funkcji na przedziale")
+            print("\t1. Tak")
+            print("\t2. Nie")
+            calc_limit = input("\t>>>>")
+        if calc_limit == "2":
+            print(simpson(chosen_function, float(a), float(b), float(e), wage_function))
+        else:
+            print(simpson_limit(chosen_function, float(e), wage_function))
+    else:
+        if len(functions[int(function_choice) - 1]) < 3:
+            raise Exception("Wybrana funkcja nie jest postaci f(x) / sqrt(1 - x^2)")
+        chosen_function = functions[int(function_choice) - 1][2]
+        a, b = -0.99, 0.99
+        for n in range(2, 6):
+            print(f"Wynik dla {n} węzłów: {gauss_czebyszew(chosen_function, n)}")
+        chosen_function = functions[int(function_choice) - 1][1]
+        draw_borders = False
+    if calc_limit is None or calc_limit == "2":
+        draw_function(chosen_function, float(a), float(b), draw_borders)
 
 
 if __name__ == '__main__':
