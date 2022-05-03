@@ -57,15 +57,15 @@ class Function:
 def simpson(f, a, b, e, wage_function):
     prev_val = None
     curr_val = None
-    intervals = 3  # musi być >= 2 i nieparzysta
+    nodes = 3  # musi być >= 2 i nieparzysta
 
     while prev_val is None or abs(prev_val - curr_val) >= e:
         prev_val = curr_val
-        h = (b - a) / intervals
+        h = (b - a) / nodes
         sum = f(a) * wage_function(a)
         sum += f(b) * wage_function(b)
 
-        for i in range(1, intervals + 1):
+        for i in range(1, nodes + 1):
             if i % 2 == 1:
                 sum += 4 * f(a + i * h) * wage_function(a + i * h)
             else:
@@ -75,7 +75,7 @@ def simpson(f, a, b, e, wage_function):
         sum /= 3
 
         curr_val = sum
-        intervals *= 2
+        nodes += 2
     return curr_val
 
 
