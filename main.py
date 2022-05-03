@@ -100,7 +100,7 @@ def simpson_limit(func, epsilon: float, wage_function) -> float:
     result = 0
     # granica do +1
     while True:
-        integral = simpson(func, a, b, epsilon, wage_function)
+        integral = simpson(func, a, b, epsilon, wage_function)[0]
         result += integral
         a = b
         b = b + (1 - b) / 2
@@ -110,7 +110,7 @@ def simpson_limit(func, epsilon: float, wage_function) -> float:
     a = -0.5
     b = 0
     while True:
-        integral = simpson(func, a, b, epsilon, wage_function)
+        integral = simpson(func, a, b, epsilon, wage_function)[0]
         result += integral
         b = a
         a = a - (1 - abs(a)) / 2
@@ -125,8 +125,7 @@ def main():
         ("x^2 + 2", Function(lambda x: x ** 2 + 2)),
         ("sin(x)", Function(lambda x: sin(x))),
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
-        ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x ** 2)), Function(lambda x: 1)),
-        ("(1 +  1 / (1 + 25x^2)) / sqrt(1 - x^2)", Function(lambda x: (1 + 1 / (1 + 25 * x**2)) / sqrt(1 - x**2)), Function(lambda x: 1 + 1 / (1 + 25 * x**2))),
+        ("1 +  1 / (1 + 25x^2)", Function(lambda x: 1 + 1 / (1 + 25 * x**2))),
         ("|1 / x|", Function(lambda x: abs(1 / x)))
     ]
 
@@ -186,16 +185,12 @@ def main():
         else:
             print(simpson_limit(chosen_function, float(e), wage_function))
     else:
-        if len(functions[int(function_choice) - 1]) < 3:
-            raise Exception("Wybrana funkcja nie jest postaci f(x) / sqrt(1 - x^2)")
         a, b = -0.99, 0.99
         for n in range(2, 6):
-            chosen_function = functions[int(function_choice) - 1][2]
             result = gauss_czebyszew(chosen_function, n)
             print(f"Wynik dla {n} węzłów: {result[0]}")
             nodes = result[1]
-            chosen_function = functions[int(function_choice) - 1][1]
-            draw_function(chosen_function, float(a), float(b), nodes)
+            draw_function(Function(lambda x: chosen_function(x) / sqrt(1 - x ** 2)), float(a), float(b), nodes)
 
 
 if __name__ == '__main__':
