@@ -126,7 +126,8 @@ def main():
         ("sin(x)", Function(lambda x: sin(x))),
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
         ("1 +  1 / (1 + 25x^2)", Function(lambda x: 1 + 1 / (1 + 25 * x**2))),
-        ("|1 / x|", Function(lambda x: abs(1 / x)))
+        ("|1 / x|", Function(lambda x: abs(1 / x))),
+        ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x**2)))
     ]
 
     function_choice = None
@@ -180,6 +181,7 @@ def main():
         if calc_limit == "2":
             result = simpson(chosen_function, float(a), float(b), float(e), wage_function)
             print(result[0])
+            print(result[1])
             nodes = np.arange(float(a), float(b), (float(b) - float(a)) / result[1])
             draw_function(chosen_function, float(a), float(b), nodes)
         else:
