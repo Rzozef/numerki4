@@ -10,7 +10,7 @@ import numpy as np
 from math import cos, pi, sin, sqrt
 
 
-def draw_function(function, a, b, draw_borders=True):
+def draw_function(function, a, b, nodes=[]):
     x = np.linspace(a, b, 100)
 
     figure = pyplot.figure()
@@ -37,6 +37,10 @@ def draw_function(function, a, b, draw_borders=True):
     for i, val in enumerate(y_vals):
         y_vals[i] = function(val)
     pyplot.fill_between(section, y_vals, color='b', alpha=.2)
+
+    for i, node_x in enumerate(nodes):
+        node_y = function(node_x)
+        pyplot.plot(node_x, node_y, 'rx')
 
     pyplot.axvline(x=a)
     pyplot.axvline(x=b)
@@ -76,16 +80,18 @@ def simpson(f, a, b, e, wage_function):
 
         curr_val = sum
         nodes += 2
-    return curr_val
+    return curr_val, nodes
 
 
 def gauss_czebyszew(f, n):
     sum = 0
     A = pi / (n + 1)
+    nodes = []
     for i in range(0, n + 1):
         x = cos(((2 * i + 1) * pi) / (2 * n + 2))
+        nodes.append(x)
         sum += A * f(x)
-    return sum
+    return sum, nodes
 
 
 def simpson_limit(func, epsilon: float, wage_function) -> float:
@@ -120,7 +126,7 @@ def main():
         ("sin(x)", Function(lambda x: sin(x))),
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
         ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x ** 2)), Function(lambda x: 1)),
-        ("1 +  1 / 25x^2 / sqrt(1 - x^2)", Function(lambda x: (1 + 1 / 25 * x**2) / sqrt(1 - x**2)), Function(lambda x: 1 + 1 / (25 * x**2))),
+        ("(1 +  1 / (1 + 25x^2)) / sqrt(1 - x^2)", Function(lambda x: (1 + 1 / (1 + 25 * x**2)) / sqrt(1 - x**2)), Function(lambda x: 1 + 1 / (1 + 25 * x**2))),
         ("|1 / x|", Function(lambda x: abs(1 / x)))
     ]
 
@@ -128,6 +134,7 @@ def main():
     method_choice = None
     e = 0
     calc_limit = None
+    nodes = []
 
     while function_choice is None:
         print("Wybierz funkcje")
@@ -172,19 +179,23 @@ def main():
             print("\t2. Nie")
             calc_limit = input("\t>>>>")
         if calc_limit == "2":
-            print(simpson(chosen_function, float(a), float(b), float(e), wage_function))
+            result = simpson(chosen_function, float(a), float(b), float(e), wage_function)
+            print(result[0])
+            nodes = np.arange(float(a), float(b), (float(b) - float(a)) / result[1])
+            draw_function(chosen_function, float(a), float(b), nodes)
         else:
             print(simpson_limit(chosen_function, float(e), wage_function))
     else:
         if len(functions[int(function_choice) - 1]) < 3:
             raise Exception("Wybrana funkcja nie jest postaci f(x) / sqrt(1 - x^2)")
-        chosen_function = functions[int(function_choice) - 1][2]
         a, b = -0.99, 0.99
         for n in range(2, 6):
-            print(f"Wynik dla {n} węzłów: {gauss_czebyszew(chosen_function, n)}")
-        chosen_function = functions[int(function_choice) - 1][1]
-    if calc_limit is None or calc_limit == "2":
-        draw_function(chosen_function, float(a), float(b))
+            chosen_function = functions[int(function_choice) - 1][2]
+            result = gauss_czebyszew(chosen_function, n)
+            print(f"Wynik dla {n} węzłów: {result[0]}")
+            nodes = result[1]
+            chosen_function = functions[int(function_choice) - 1][1]
+            draw_function(chosen_function, float(a), float(b), nodes)
 
 
 if __name__ == '__main__':
