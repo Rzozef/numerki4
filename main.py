@@ -28,7 +28,7 @@ def newton_cotes(func, a: float, b: float, epsilon: float) -> float:
         n = 1
         for i in range(n):
             lenght = (b - a) / n
-            result += simpson(func, a + lenght * i, b + lenght * i)
+            result += simpson(func, a + lenght * i, a + lenght * (i + 1))
         if result - prev_result < epsilon:
             break
         prev_result = result
