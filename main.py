@@ -11,15 +11,7 @@ from math import cos, pi, sin, sqrt
 
 
 def draw_function(function, a, b, draw_borders=True):
-    org_a = a
-    org_b = b
-    a = min(math.floor(a), math.ceil(a))
-    b = max(math.floor(b), math.ceil(b))
-    x = None
-    if draw_borders == True:
-        x = np.linspace(a, b, 100)
-    else:
-        x = np.linspace(org_a, org_b, 100)
+    x = np.linspace(a, b, 100)
 
     figure = pyplot.figure()
     axis = figure.add_subplot(1, 1, 1)
@@ -40,14 +32,14 @@ def draw_function(function, a, b, draw_borders=True):
         y_vals[i] = function(x[i])
     pyplot.plot(x, y_vals, 'r', label="f(x)")
 
-    section = np.arange(org_a, org_b, 0.0001)
+    section = np.arange(a, b, 0.0001)
     y_vals = section.copy()
     for i, val in enumerate(y_vals):
         y_vals[i] = function(val)
     pyplot.fill_between(section, y_vals, color='b', alpha=.2)
 
-    pyplot.axvline(x=org_a)
-    pyplot.axvline(x=org_b)
+    pyplot.axvline(x=a)
+    pyplot.axvline(x=b)
 
     pyplot.xticks(np.arange(min(x), max(x) + 1, 1.0))
     pyplot.legend()
@@ -73,7 +65,7 @@ def simpson(f, a, b, e, wage_function):
         sum = f(a) * wage_function(a)
         sum += f(b) * wage_function(b)
 
-        for i in range(1, intervals):
+        for i in range(1, intervals + 1):
             if i % 2 == 1:
                 sum += 4 * f(a + i * h) * wage_function(a + i * h)
             else:
@@ -128,6 +120,7 @@ def main():
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
         ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x ** 2)), Function(lambda x: 1)),
         ("-x / sqrt(1 - x^2)", Function(lambda x: -x / sqrt(1 - x ** 2)), Function(lambda x: -x)),
+        ("|1 / x|", Function(lambda x: abs(1 / x))),
         ("1", Function(lambda x: 1))
     ]
 
@@ -135,7 +128,6 @@ def main():
     method_choice = None
     e = 0
     calc_limit = None
-    draw_borders = True
 
     while function_choice is None:
         print("Wybierz funkcje")
@@ -191,9 +183,8 @@ def main():
         for n in range(2, 6):
             print(f"Wynik dla {n} węzłów: {gauss_czebyszew(chosen_function, n)}")
         chosen_function = functions[int(function_choice) - 1][1]
-        draw_borders = False
     if calc_limit is None or calc_limit == "2":
-        draw_function(chosen_function, float(a), float(b), draw_borders)
+        draw_function(chosen_function, float(a), float(b))
 
 
 if __name__ == '__main__':
