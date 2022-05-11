@@ -121,7 +121,8 @@ def main():
         ("x^5 + 3x^4 + x^2 + 1", Function(lambda x: x ** 5 + 3 * x ** 4 + x ** 2 + 1)),
         ("1 +  1 / (1 + 25x^2)", Function(lambda x: 1 + 1 / (1 + 25 * x**2))),
         ("|1 / x|", Function(lambda x: abs(1 / x))),
-        ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x**2)))
+        ("1 / sqrt(1 - x^2)", Function(lambda x: 1 / sqrt(1 - x**2))),
+        ("|sin(x * 10 pi)|", Function(lambda x: abs(sin(x * 10 * pi))))
     ]
 
     function_choice = None
@@ -182,7 +183,7 @@ def main():
             print(simpson_limit(chosen_function, float(e), wage_function))
     else:
         a, b = -0.99, 0.99
-        for n in range(2, 6):
+        for n in range(2, 20):
             result = gauss_czebyszew(chosen_function, n)
             print(f"Wynik dla {n} węzłów: {result[0]}")
             nodes = result[1]
